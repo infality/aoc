@@ -282,11 +282,90 @@ pub fn task2(input: &str) {
             }
         }
     }
-    //print_area(&area);
+    print_area(&area);
 
-    get_image(&area, 0, false);
+    let mut image = get_image(&area);
+    for flipped in [false, true] {
+        if flipped {
+            let mut new_image = Vec::new();
+            for row in 0..image.len() {
+                let mut new_row = Vec::new();
+                for col in 0..image[0].len() {
+                    new_row.push(image[image.len() - 1 - row][col]);
+                }
+                new_image.push(new_row);
+            }
+            image = new_image;
+        }
 
-    println!("Result: {}", result);
+        for rotation in 0..4 {
+            if flipped || rotation > 0 {
+                let mut new_image = Vec::new();
+                for row in 0..image.len() {
+                    let mut new_row = Vec::new();
+                    for col in 0..image[0].len() {
+                        new_row.push(image[col][image.len() - 1 - row]);
+                    }
+                    new_image.push(new_row);
+                }
+                image = new_image;
+            }
+
+            for row in image.iter() {
+                for cell in row.iter() {
+                    print!("{}", if *cell { '#' } else { '.' });
+                }
+                print!("\n");
+            }
+            print!("\n");
+
+            let mut monsters = 0;
+            for row in 0..image.len() - 2 {
+                for col in 0..image[0].len() - 19 {
+                    if !image[row][col + 18] {
+                        continue;
+                    }
+
+                    if !image[row + 1][col]
+                        || !image[row + 1][col + 5]
+                        || !image[row + 1][col + 6]
+                        || !image[row + 1][col + 11]
+                        || !image[row + 1][col + 12]
+                        || !image[row + 1][col + 17]
+                        || !image[row + 1][col + 18]
+                        || !image[row + 1][col + 19]
+                    {
+                        continue;
+                    }
+
+                    if !image[row + 2][col + 1]
+                        || !image[row + 2][col + 4]
+                        || !image[row + 2][col + 7]
+                        || !image[row + 2][col + 10]
+                        || !image[row + 2][col + 13]
+                        || !image[row + 2][col + 16]
+                    {
+                        continue;
+                    }
+                    println!("{} {} {} {}", flipped, rotation, row, col);
+                    monsters += 1;
+                }
+            }
+            if monsters > 0 {
+                println!("Monsters: {}", monsters);
+                for i in image.iter() {
+                    for j in i.iter() {
+                        if *j {
+                            result += 1;
+                        }
+                    }
+                }
+                result -= monsters * 15;
+                println!("Result: {}", result);
+                return;
+            }
+        }
+    }
 }
 
 fn print_area(area: &[[Option<Tile>; WIDTH]; WIDTH]) {
@@ -362,31 +441,28 @@ fn print_area(area: &[[Option<Tile>; WIDTH]; WIDTH]) {
     }
 }
 
-fn get_image(
-    area: &[[Option<Tile>; WIDTH]; WIDTH],
-    rotation: usize,
-    flipped: bool,
-) -> Vec<Vec<bool>> {
+fn get_image(area: &[[Option<Tile>; WIDTH]; WIDTH]) -> Vec<Vec<bool>> {
     let mut result = Vec::new();
     for row in area.iter() {
-        for data_row in 0..10 {
+        for data_row in 1..9 {
             let mut result_row = Vec::new();
             for cell in row.iter() {
                 let mut horizontal = true;
                 let mut i = data_row;
                 let mut reverse = false;
+
                 match cell.unwrap().rotations {
                     0 => (),
                     1 => {
-                        horizontal = false;
-                        reverse = true;
+                        horizontal = !horizontal;
+                        reverse = !reverse;
                     }
                     2 => {
                         i = 9 - i;
-                        reverse = true;
+                        reverse = !reverse;
                     }
                     3 => {
-                        horizontal = false;
+                        horizontal = !horizontal;
                         i = 9 - i;
                     }
                     _ => panic!(),
@@ -401,15 +477,38 @@ fn get_image(
 
                 if horizontal {
                     if reverse {
-                        result_row.extend(cell.unwrap().data[i].iter().rev().map(bool_map));
+                        result_row.extend(
+                            cell.unwrap().data[i]
+                                .iter()
+                                .skip(1)
+                                .take(8)
+                                .rev()
+                                .map(bool_map),
+                        );
                     } else {
-                        result_row.extend(cell.unwrap().data[i].iter().map(bool_map));
+                        result_row
+                            .extend(cell.unwrap().data[i].iter().skip(1).take(8).map(bool_map));
                     }
                 } else {
                     if reverse {
-                        result_row.extend(cell.unwrap().data.iter().rev().map(|x| bool_map(&x[i])));
+                        result_row.extend(
+                            cell.unwrap()
+                                .data
+                                .iter()
+                                .skip(1)
+                                .take(8)
+                                .rev()
+                                .map(|x| bool_map(&x[i])),
+                        );
                     } else {
-                        result_row.extend(cell.unwrap().data.iter().map(|x| bool_map(&x[i])));
+                        result_row.extend(
+                            cell.unwrap()
+                                .data
+                                .iter()
+                                .skip(1)
+                                .take(8)
+                                .map(|x| bool_map(&x[i])),
+                        );
                     }
                 }
             }
