@@ -40,20 +40,61 @@ pub fn task2(input: &str) {
     }
     println!("{:?}", sub_results);
 
-    let min_sub_result_len = sub_results
-        .iter()
-        .map(|x| x.1.iter().map(|y| y.len()).min().unwrap())
-        .min()
-        .unwrap();
-    let max_len = test_messages.iter().map(|x| x.len()).max().unwrap();
-    let max_amount = max_len / min_sub_result_len;
-    // TODO
-    for eights in 1..=max_amount {
-        let mut message = String::new();
-        for elevens in 1..=max_amount {
-            if test_messages.contains(&message.as_str()) {
-                println!("{:?}", message);
+    // <42>+(<42><31>)+
+    for test_message in test_messages.iter() {
+        let mut messages = Vec::new();
+        for sub_result in sub_results[&42].iter() {
+            if test_message.starts_with(sub_result) {
+                messages.push((sub_result.clone(), 0));
+            }
+        }
+
+        let mut i = 0;
+        while i < messages.len() {
+            for sub_result in sub_results[&42].iter() {
+                if test_message[messages[i].0.len()..].starts_with(sub_result) {
+                    messages.push((format!("{}{}", messages[i].0, sub_result), 0));
+                }
+            }
+            i += 1;
+        }
+
+        let mut i = 0;
+        while i < messages.len() {
+            for sub_result in sub_results[&42].iter() {
+                if test_message[messages[i].0.len()..].starts_with(sub_result) {
+                    messages.push((
+                        format!("{}{}", messages[i].0, sub_result),
+                        messages[i].1 + 1,
+                    ));
+                }
+            }
+            i += 1;
+        }
+
+        messages.retain(|x| x.1 != 0);
+
+        let mut i = 0;
+        while i < messages.len() {
+            if messages[i].1 == 0 {
+                i += 1;
+                continue;
+            }
+            for sub_result in sub_results[&31].iter() {
+                if test_message[messages[i].0.len()..].starts_with(sub_result) {
+                    messages.push((
+                        format!("{}{}", messages[i].0, sub_result),
+                        messages[i].1 - 1,
+                    ));
+                }
+            }
+            i += 1;
+        }
+
+        for message in messages.iter() {
+            if message.1 == 0 && test_message == &message.0 {
                 result += 1;
+                println!("{}", test_message);
             }
         }
     }
