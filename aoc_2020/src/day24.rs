@@ -53,26 +53,26 @@ fn get_flipped_tiles(instructions: &Vec<Vec<Direction>>) -> HashSet<(isize, isiz
                 Direction::East => x += 1,
                 Direction::SouthEast => {
                     y += 1;
-                    if y % 2 != 0 {
+                    if y % 2 == 0 {
                         x += 1;
                     }
                 }
                 Direction::SouthWest => {
                     y += 1;
-                    if y % 2 == 0 {
+                    if y % 2 != 0 {
                         x -= 1;
                     }
                 }
                 Direction::West => x -= 1,
                 Direction::NorthWest => {
                     y -= 1;
-                    if y % 2 == 0 {
+                    if y % 2 != 0 {
                         x -= 1;
                     }
                 }
                 Direction::NorthEast => {
                     y -= 1;
-                    if y % 2 != 0 {
+                    if y % 2 == 0 {
                         x += 1;
                     }
                 }
@@ -116,10 +116,26 @@ pub fn task2(input: &str) {
 
     for day in 0..100 {
         println!("{}: {}", day, flipped.len());
-        /* println!("{:?}", flipped);
+
+        /* for y in -6..6 {
+            if y % 2 == 0 {
+                print!("-");
+            } else {
+                print!("+");
+            }
+            for x in -6..6 {
+                if flipped.contains(&(x, y)) {
+                    print!("#");
+                } else {
+                    print!(".");
+                }
+            }
+            print!("\n");
+        }
         if day == 5 {
             break;
         } */
+
         let mut new_flipped = flipped.clone();
         for (x, y) in flipped.iter() {
             let black = get_black_adjacent(*x, *y, &flipped);
@@ -129,16 +145,8 @@ pub fn task2(input: &str) {
         }
 
         for (x, y) in flipped.iter() {
-            check_white(x + 1, *y, &flipped, &mut new_flipped);
-            check_white(x - 1, *y, &flipped, &mut new_flipped);
-            check_white(*x, y + 1, &flipped, &mut new_flipped);
-            check_white(*x, y - 1, &flipped, &mut new_flipped);
-            if y % 2 == 0 {
-                check_white(x - 1, y + 1, &flipped, &mut new_flipped);
-                check_white(x - 1, y - 1, &flipped, &mut new_flipped);
-            } else {
-                check_white(x + 1, y + 1, &flipped, &mut new_flipped);
-                check_white(x + 1, y - 1, &flipped, &mut new_flipped);
+            for neighbor in get_neighbors(*x, *y) {
+                check_white(neighbor.0, neighbor.1, &flipped, &mut new_flipped);
             }
         }
 
@@ -162,32 +170,26 @@ fn check_white(
 
 fn get_black_adjacent(x: isize, y: isize, flipped: &HashSet<(isize, isize)>) -> usize {
     let mut result = 0;
-    if flipped.contains(&(x + 1, y)) {
-        result += 1;
+    for neighbor in get_neighbors(x, y) {
+        if flipped.contains(&neighbor) {
+            result += 1;
+        }
     }
-    if flipped.contains(&(x - 1, y)) {
-        result += 1;
-    }
-    if flipped.contains(&(x, y + 1)) {
-        result += 1;
-    }
-    if flipped.contains(&(x, y - 1)) {
-        result += 1;
-    }
+    result
+}
+
+fn get_neighbors(x: isize, y: isize) -> Vec<(isize, isize)> {
+    let mut result = Vec::new();
+    result.push((x + 1, y));
+    result.push((x - 1, y));
+    result.push((x, y + 1));
+    result.push((x, y - 1));
     if y % 2 == 0 {
-        if flipped.contains(&(x - 1, y + 1)) {
-            result += 1;
-        }
-        if flipped.contains(&(x - 1, y - 1)) {
-            result += 1;
-        }
+        result.push((x - 1, y + 1));
+        result.push((x - 1, y - 1));
     } else {
-        if flipped.contains(&(x + 1, y + 1)) {
-            result += 1;
-        }
-        if flipped.contains(&(x + 1, y - 1)) {
-            result += 1;
-        }
+        result.push((x + 1, y + 1));
+        result.push((x + 1, y - 1));
     }
     result
 }
