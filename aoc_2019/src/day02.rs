@@ -2,7 +2,7 @@ pub fn task1(input: &str) {
     let mut result = 0usize;
 
     let mut fields: Vec<usize> = Vec::new();
-    for (i, s) in input.split(',').enumerate() {
+    for s in input.split(',') {
         fields.push(s.parse().unwrap());
     }
 
@@ -39,7 +39,7 @@ pub fn task2(input: &str) {
     let mut result = 0usize;
 
     let mut orig_fields: Vec<usize> = Vec::new();
-    for (i, s) in input.split(',').enumerate() {
+    for s in input.split(',') {
         orig_fields.push(s.parse().unwrap());
     }
 
